@@ -1,52 +1,113 @@
 import logo from "./logo.svg";
-import React from "react";
+import React, { useEffect, useState } from "react";
 // import "./App.css";
 import { Marker } from "@react-google-maps/api";
-import { GoogleMap, LoadScript } from "@react-google-maps/api";
+// import Home from "./Home";
+import { GoogleMap, LoadScript, useJsApiLoader } from "@react-google-maps/api";
+
 const containerStyle = {
 	width: "100vw",
-	height: "100vh",
+	height: "60vh",
 };
 
-const center = {
+const start_point = {
 	lat: 23.8540299172,
 	lng: 90.415498338,
 };
-const onLoad = (marker) => {
+const end_point = {
+	lat: 23.622641,
+	lng: 90.499794,
+};
+const onLoads = (marker) => {
 	console.log("marker: ", marker);
 };
+let starting = null;
+let end = null;
 function App() {
+	const [coordinates, setCoordinates] = useState(null);
+	const [start, setStart] = useState(null);
+	const [map, setMap] = React.useState(null);
+	const [end, setEnd] = useState(null);
+	// var directionsService = new google.maps.DirectionsService();
+	const { isLoaded } = useJsApiLoader({
+		id: "google-map-script",
+		googleMapsApiKey: "AIzaSyD81s0fJ7X2KeC1tqnJkDLmXku6vY6Zf5o",
+	});
+	const onLoad = React.useCallback(function callback(map) {
+		// const bounds = new window.google.maps.LatLngBounds(start_point);
+		// map.fitBounds(bounds);
+		setMap(map);
+		console.log("====================================");
+		console.log(coordinates);
+		console.log("====================================");
+	}, []);
+	const onUnmount = React.useCallback(function callback(map) {
+		setMap(null);
+	}, []);
+
+	useEffect(() => {
+		fetch("/track_points.geojson")
+			.then((res) => res.json())
+			.then((data) => {
+				console.log(data);
+				const coordinateData = data.features;
+				setCoordinates(coordinateData);
+				const start = {
+					lat: coordinateData[0].geometry.coordinates[0],
+					lng: coordinateData[0].geometry.coordinates[1],
+				};
+				const last = {
+					lat: coordinateData[coordinateData.length - 1].geometry
+						.coordinates[0],
+					lng: coordinateData[coordinateData.length - 1].geometry
+						.coordinates[1],
+				};
+				console.log(start, last);
+				starting = start;
+				// end = last;
+				setStart(start);
+				setEnd(last);
+				// return coordinateData;
+			});
+	}, []);
+	useEffect(() => {
+		if (coordinates != null && isLoaded) {
+			coordinates.forEach((item, ind) => {
+				setTimeout(() => {
+					const start = {
+						lat: item.geometry.coordinates[0],
+						lng: item.geometry.coordinates[1],
+					};
+					starting = start;
+					setStart(start);
+					console.log("====================================");
+					console.log(starting, ind);
+				}, 5000);
+			});
+		}
+	}, [coordinates]);
+
 	return (
-		<LoadScript googleMapsApiKey='AIzaSyBuM7SaXRlIIAZsyBR7q7pp_B-g4sysEtY'>
+		// <Home />
+
+		isLoaded ? (
 			<GoogleMap
+				onLoad={onLoad}
+				onUnmount={onUnmount}
 				mapContainerStyle={containerStyle}
-				center={center}
+				center={start}
 				zoom={10}>
 				{/* Child components, such as markers, info windows, etc. */}
-				<Marker onLoad={onLoad} position={center} />
-				<Marker
-					onLoad={onLoad}
-					position={{
-						lat: 23.622641,
-						lng: 90.499794,
-					}}
-				/>
-				{/* <Marker
-					icon={{
-						path: "M8 12l-4.7023 2.4721.898-5.236L.3916 5.5279l5.2574-.764L8 0l2.3511 4.764 5.2574.7639-3.8043 3.7082.898 5.236z",
-						fillColor: "yellow",
-						fillOpacity: 0.9,
-						scale: 2,
-						strokeColor: "gold",
-						strokeWeight: 2,
-					}}
-					position={{
-						lat: 23.622641,
-						lng: 90.499794,
-					}}
-				/> */}
+				{coordinates != null && (
+					<>
+						<Marker onLoad={onLoads} position={start} />
+						<Marker onLoad={onLoads} position={end} />
+					</>
+				)}
 			</GoogleMap>
-		</LoadScript>
+		) : (
+			<></>
+		)
 	);
 }
 
