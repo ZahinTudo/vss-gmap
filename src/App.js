@@ -7,7 +7,7 @@ import { GoogleMap, LoadScript, useJsApiLoader } from "@react-google-maps/api";
 
 const containerStyle = {
 	width: "100vw",
-	height: "60vh",
+	height: "100vh",
 };
 
 const start_point = {
@@ -26,6 +26,7 @@ let end = null;
 function App() {
 	const [coordinates, setCoordinates] = useState(null);
 	const [start, setStart] = useState(null);
+	const [center, setcenter] = useState(null);
 	const [map, setMap] = React.useState(null);
 	const [end, setEnd] = useState(null);
 	// var directionsService = new google.maps.DirectionsService();
@@ -45,6 +46,29 @@ function App() {
 		setMap(null);
 	}, []);
 
+	// useEffect(() => {
+	// 	fetch("/sirTrack2.geojson")
+	// 		.then((res) => res.json())
+	// 		.then((data) => {
+	// 			console.log(data);
+	// 			const coordinateData = data.features[0].geometry.coordinates[0];
+	// 			setCoordinates(coordinateData);
+	// 			const start = {
+	// 				lng: coordinateData[0][0],
+	// 				lat: coordinateData[0][1],
+	// 			};
+	// 			const last = {
+	// 				lng: coordinateData[coordinateData.length - 1][0],
+	// 				lat: coordinateData[coordinateData.length - 1][1],
+	// 			};
+	// 			console.log(start, last);
+	// 			starting = start;
+	// 			// end = last;
+	// 			setStart(start);
+	// 			setEnd(last);
+	// 			// return coordinateData;
+	// 		});
+	// }, []);
 	useEffect(() => {
 		fetch("/track_points.geojson")
 			.then((res) => res.json())
@@ -53,30 +77,48 @@ function App() {
 				const coordinateData = data.features;
 				setCoordinates(coordinateData);
 				const start = {
-					lat: coordinateData[0].geometry.coordinates[0],
-					lng: coordinateData[0].geometry.coordinates[1],
+					lng: coordinateData[0].geometry.coordinates[0],
+					lat: coordinateData[0].geometry.coordinates[1],
 				};
 				const last = {
-					lat: coordinateData[coordinateData.length - 1].geometry
-						.coordinates[0],
 					lng: coordinateData[coordinateData.length - 1].geometry
+						.coordinates[0],
+					lat: coordinateData[coordinateData.length - 1].geometry
 						.coordinates[1],
 				};
 				console.log(start, last);
 				starting = start;
 				// end = last;
+				setcenter(start);
 				setStart(start);
 				setEnd(last);
 				// return coordinateData;
 			});
 	}, []);
+	// useEffect(() => {
+	// 	console.log(coordinates, isLoaded);
+	// 	if (coordinates != null) {
+	// 		coordinates.forEach((item, ind) => {
+	// 			setTimeout(() => {
+	// 				const start = {
+	// 					lng: item[0],
+	// 					lat: item[1],
+	// 				};
+	// 				starting = start;
+	// 				setStart(start);
+	// 				console.log("====================================");
+	// 				console.log(starting, ind);
+	// 			}, 5000);
+	// 		});
+	// 	}
+	// }, [coordinates]);
 	useEffect(() => {
 		if (coordinates != null && isLoaded) {
 			coordinates.forEach((item, ind) => {
 				setTimeout(() => {
 					const start = {
-						lat: item.geometry.coordinates[0],
-						lng: item.geometry.coordinates[1],
+						lng: item.geometry.coordinates[0],
+						lat: item.geometry.coordinates[1],
 					};
 					starting = start;
 					setStart(start);
@@ -85,7 +127,7 @@ function App() {
 				}, 5000);
 			});
 		}
-	}, [coordinates]);
+	}, [coordinates, isLoaded]);
 
 	return (
 		// <Home />
@@ -95,7 +137,7 @@ function App() {
 				onLoad={onLoad}
 				onUnmount={onUnmount}
 				mapContainerStyle={containerStyle}
-				center={start}
+				center={center}
 				zoom={10}>
 				{/* Child components, such as markers, info windows, etc. */}
 				{coordinates != null && (
