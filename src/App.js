@@ -25,7 +25,9 @@ let starting = null;
 let end = null;
 function App() {
 	const [coordinates, setCoordinates] = useState(null);
+	const [coordinates2, setCoordinates2] = useState(null);
 	const [start, setStart] = useState(null);
+	const [start1, setStart1] = useState(null);
 	const [center, setcenter] = useState(null);
 	const [map, setMap] = React.useState(null);
 	const [end, setEnd] = useState(null);
@@ -46,63 +48,128 @@ function App() {
 		setMap(null);
 	}, []);
 
+	useEffect(() => {
+		fetch("/sirTrack2.geojson")
+			.then((res) => res.json())
+			.then((data) => {
+				console.log(data);
+				const coordinateData = data.features[0].geometry.coordinates[0];
+				const coordinateData2 =
+					data.features[0].geometry.coordinates[1];
+				setCoordinates(coordinateData);
+				setCoordinates2(coordinateData2);
+				const start = {
+					lng: coordinateData[0][0],
+					lat: coordinateData[0][1],
+				};
+				const start1 = {
+					lng: coordinateData2[0][0],
+					lat: coordinateData2[0][1],
+				};
+				// const last = {
+				// 	lng: coordinateData[coordinateData.length - 1][0],
+				// 	lat: coordinateData[coordinateData.length - 1][1],
+				// };
+
+				console.log(start);
+				// starting = start;
+				// end = last;
+				setcenter(start);
+				setStart(start);
+				setStart1(start1);
+				// setEnd(last);
+				// return coordinateData;
+			});
+	}, []);
 	// useEffect(() => {
-	// 	fetch("/sirTrack2.geojson")
+	// 	fetch("/track_points.geojson")
 	// 		.then((res) => res.json())
 	// 		.then((data) => {
 	// 			console.log(data);
-	// 			const coordinateData = data.features[0].geometry.coordinates[0];
+	// 			const coordinateData = data.features;
 	// 			setCoordinates(coordinateData);
 	// 			const start = {
-	// 				lng: coordinateData[0][0],
-	// 				lat: coordinateData[0][1],
+	// 				lng: coordinateData[0].geometry.coordinates[0],
+	// 				lat: coordinateData[0].geometry.coordinates[1],
 	// 			};
 	// 			const last = {
-	// 				lng: coordinateData[coordinateData.length - 1][0],
-	// 				lat: coordinateData[coordinateData.length - 1][1],
+	// 				lng: coordinateData[coordinateData.length - 1].geometry
+	// 					.coordinates[0],
+	// 				lat: coordinateData[coordinateData.length - 1].geometry
+	// 					.coordinates[1],
 	// 			};
 	// 			console.log(start, last);
 	// 			starting = start;
 	// 			// end = last;
+	// 			setcenter(start);
 	// 			setStart(start);
 	// 			setEnd(last);
 	// 			// return coordinateData;
 	// 		});
 	// }, []);
 	useEffect(() => {
-		fetch("/track_points.geojson")
-			.then((res) => res.json())
-			.then((data) => {
-				console.log(data);
-				const coordinateData = data.features;
-				setCoordinates(coordinateData);
-				const start = {
-					lng: coordinateData[0].geometry.coordinates[0],
-					lat: coordinateData[0].geometry.coordinates[1],
-				};
-				const last = {
-					lng: coordinateData[coordinateData.length - 1].geometry
-						.coordinates[0],
-					lat: coordinateData[coordinateData.length - 1].geometry
-						.coordinates[1],
-				};
-				console.log(start, last);
-				starting = start;
-				// end = last;
-				setcenter(start);
-				setStart(start);
-				setEnd(last);
-				// return coordinateData;
+		console.log(coordinates, isLoaded);
+		if (coordinates != null && coordinates2 != null && isLoaded) {
+			// coordinates.forEach((item, ind) => {
+			// 	setTimeout(() => {
+			// 		const start = {
+			// 			lng: item[0],
+			// 			lat: item[1],
+			// 		};
+			// 		starting = start;
+			// 		setStart(start);
+			// 		console.log("====================================");
+			// 		console.log(starting, ind);
+			// 	}, 5000);
+			// });
+			const len = coordinates.length;
+			coordinates2.forEach((item, ind) => {
+				if (ind < len) {
+					setTimeout(() => {
+						const start = {
+							lng: coordinates[ind][0],
+							lat: coordinates[ind][1],
+						};
+						starting = start;
+						setStart(start);
+						console.log("====================================");
+						console.log(starting, ind);
+					}, 7000);
+				}
+				setTimeout(() => {
+					const start = {
+						lng: item[0],
+						lat: item[1],
+					};
+					// starting = start;
+					setStart1(start);
+					console.log("====================================");
+					console.log(starting, ind);
+				}, 7000);
 			});
-	}, []);
+		}
+		// if (coordinates2 != null && isLoaded) {
+		// 	coordinates2.forEach((item, ind) => {
+		// 		setTimeout(() => {
+		// 			const start = {
+		// 				lng: item[0],
+		// 				lat: item[1],
+		// 			};
+		// 			// starting = start;
+		// 			setStart1(start);
+		// 			console.log("====================================");
+		// 			console.log(starting, ind);
+		// 		}, 5000);
+		// 	});
+		// }
+	}, [coordinates, coordinates2, isLoaded]);
 	// useEffect(() => {
-	// 	console.log(coordinates, isLoaded);
-	// 	if (coordinates != null) {
+	// 	if (coordinates != null && isLoaded) {
 	// 		coordinates.forEach((item, ind) => {
 	// 			setTimeout(() => {
 	// 				const start = {
-	// 					lng: item[0],
-	// 					lat: item[1],
+	// 					lng: item.geometry.coordinates[0],
+	// 					lat: item.geometry.coordinates[1],
 	// 				};
 	// 				starting = start;
 	// 				setStart(start);
@@ -111,23 +178,7 @@ function App() {
 	// 			}, 5000);
 	// 		});
 	// 	}
-	// }, [coordinates]);
-	useEffect(() => {
-		if (coordinates != null && isLoaded) {
-			coordinates.forEach((item, ind) => {
-				setTimeout(() => {
-					const start = {
-						lng: item.geometry.coordinates[0],
-						lat: item.geometry.coordinates[1],
-					};
-					starting = start;
-					setStart(start);
-					console.log("====================================");
-					console.log(starting, ind);
-				}, 5000);
-			});
-		}
-	}, [coordinates, isLoaded]);
+	// }, [coordinates, isLoaded]);
 
 	return (
 		// <Home />
@@ -138,12 +189,12 @@ function App() {
 				onUnmount={onUnmount}
 				mapContainerStyle={containerStyle}
 				center={center}
-				zoom={10}>
+				zoom={9}>
 				{/* Child components, such as markers, info windows, etc. */}
 				{coordinates != null && (
 					<>
 						<Marker onLoad={onLoads} position={start} />
-						<Marker onLoad={onLoads} position={end} />
+						<Marker onLoad={onLoads} position={start1} />
 					</>
 				)}
 			</GoogleMap>
