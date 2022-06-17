@@ -2,8 +2,14 @@ import logo from "./logo.svg";
 import React, { useEffect, useState } from "react";
 // import "./App.css";
 import { Marker } from "@react-google-maps/api";
+import "bootstrap/dist/css/bootstrap.min.css";
 // import Home from "./Home";
-import { GoogleMap, LoadScript, useJsApiLoader } from "@react-google-maps/api";
+import {
+	GoogleMap,
+	LoadScript,
+	InfoWindow,
+	useJsApiLoader,
+} from "@react-google-maps/api";
 
 const containerStyle = {
 	width: "100vw",
@@ -18,9 +24,7 @@ const end_point = {
 	lat: 23.622641,
 	lng: 90.499794,
 };
-const onLoads = (marker) => {
-	console.log("marker: ", marker);
-};
+
 let starting = null;
 let end = null;
 function App() {
@@ -30,7 +34,9 @@ function App() {
 	const [start1, setStart1] = useState(null);
 	const [center, setcenter] = useState(null);
 	const [map, setMap] = React.useState(null);
+	const [marker1, setMarker1] = React.useState(null);
 	const [end, setEnd] = useState(null);
+	const [BikerShow, setBikerShow] = useState(false);
 	// var directionsService = new google.maps.DirectionsService();
 	const { isLoaded } = useJsApiLoader({
 		id: "google-map-script",
@@ -47,7 +53,10 @@ function App() {
 	const onUnmount = React.useCallback(function callback(map) {
 		setMap(null);
 	}, []);
-
+	const onLoads = (marker) => {
+		console.log("marker: ", marker);
+		setMarker1(marker);
+	};
 	useEffect(() => {
 		fetch("/sirTrack2.geojson")
 			.then((res) => res.json())
@@ -133,7 +142,7 @@ function App() {
 						};
 						starting = start;
 						setStart(start);
-						console.log("====================================");
+						// console.log("====================================");
 						// console.log(starting, ind);
 					}
 					const start1 = {
@@ -142,9 +151,9 @@ function App() {
 					};
 					// starting = start;
 					setStart1(start1);
-					console.log("====================================");
+					// console.log("====================================");
 					// console.log(starting, ind);
-					if (i == coordinates2.length - 1) {
+					if (i === coordinates2.length - 1) {
 						clearInterval(interval);
 					}
 					i += 1;
@@ -206,7 +215,20 @@ function App() {
 	// 		});
 	// 	}
 	// }, [coordinates, isLoaded]);
-
+	const divStyle = {
+		background: `white`,
+		border: `1px solid #ccc`,
+		padding: 15,
+	};
+	const handleSingleCLick = (e) => {
+		console.log("clicked", e);
+		const infowindow = new window.google.maps.InfoWindow({
+			content: "<h1>Biker 1</h1>",
+		});
+		infowindow.open(map, marker1);
+		// marker.addListener("click", () =>);
+		setBikerShow(true);
+	};
 	return (
 		// <Home />
 
@@ -220,8 +242,35 @@ function App() {
 				{/* Child components, such as markers, info windows, etc. */}
 				{coordinates != null && (
 					<>
-						<Marker onLoad={onLoads} position={start} />
-						<Marker onLoad={onLoads} position={start1} />
+						<Marker
+							onLoad={onLoads}
+							position={start}
+							key='marker_1'
+							icon={{
+								url: "https://purepng.com/public/uploads/large/yellow-truck-n1f.png",
+								scaledSize: new window.google.maps.Size(40, 32),
+							}}
+						/>
+
+						<Marker
+							onClick={(e) => handleSingleCLick(e)}
+							icon={{
+								url: "https://www.freepnglogos.com/uploads/bike-png/black-yamaha-yzf-sport-motorcycle-bike-png-image-pngpix-32.png",
+								scaledSize: new window.google.maps.Size(40, 32),
+							}}
+							onLoad={onLoads}
+							position={start1}></Marker>
+						{/* <div className={BikerShow ? ` d-block ` : `d-none`}>
+						    <InfoWindow onLoad={onLoad} position={start1}> 
+							<div
+								style={{
+									width: "max-content",
+									height: "max-content",
+								}}>
+								<h1>Biker 1</h1>
+							</div>
+							 </InfoWindow> 
+						</div> */}
 					</>
 				)}
 			</GoogleMap>
