@@ -1,5 +1,6 @@
 import logo from "./logo.svg";
 import React, { useEffect, useState } from "react";
+import ReactDOMServer from "react-dom/server";
 // import "./App.css";
 import { Marker } from "@react-google-maps/api";
 import "bootstrap/dist/css/bootstrap.min.css";
@@ -19,10 +20,11 @@ const containerStyle = {
 function App() {
 	const [coordinates, setCoordinates] = useState(null);
 	const [coordinates2, setCoordinates2] = useState(null);
+	const [markerList, setMarker] = useState([]);
 	const [start, setStart] = useState(null);
 	const [start1, setStart1] = useState(null);
 	const [center, setcenter] = useState(null);
-	const [map, setMap] = React.useState(null);
+	const [map, setMap] = React.useState(/** @type google.maps.Map */ (null));
 	// const [marker1, setMarker1] = React.useState(null);
 	// const [end, setEnd] = useState(null);
 
@@ -35,9 +37,6 @@ function App() {
 		// const bounds = new window.google.maps.LatLngBounds(start_point);
 		// map.fitBounds(bounds);
 		setMap(map);
-		console.log("====================================");
-		console.log(coordinates);
-		console.log("====================================");
 	}, []);
 	const onUnmount = React.useCallback(function callback(map) {
 		setMap(null);
@@ -57,6 +56,7 @@ function App() {
 				const coordinateData = data.features[0].geometry.coordinates[0];
 				const coordinateData2 =
 					data.features[0].geometry.coordinates[1];
+
 				setCoordinates(coordinateData);
 				setCoordinates2(coordinateData2);
 				const start = {
@@ -67,136 +67,135 @@ function App() {
 					lng: coordinateData2[0][0],
 					lat: coordinateData2[0][1],
 				};
-
+				const Marker = [
+					{
+						position: start,
+						icon: "https://purepng.com/public/uploads/large/yellow-truck-n1f.png",
+						info: "<div><h2>Info 4</h2><p>marker 1<br/> Im truck.</p></div>",
+						title: "Marker 1",
+					},
+					{
+						position: start1,
+						icon: "http://www.mamotorcycles.com.mt/wp-content/uploads/2020/11/22MY_Ninja_650_WT1_STU__1_.png",
+						info: "<div><h2>Info 4</h2><p>marker 1<br/> Im truck.</p></div>",
+						title: "Marker 1",
+					},
+				];
 				console.log(start);
 
+				setMarker(Marker);
 				setcenter(start);
 				setStart(start);
 				setStart1(start1);
 			});
 	}, []);
-	// useEffect(() => {
-	// 	fetch("/track_points.geojson")
-	// 		.then((res) => res.json())
-	// 		.then((data) => {
-	// 			console.log(data);
-	// 			const coordinateData = data.features;
-	// 			setCoordinates(coordinateData);
-	// 			const start = {
-	// 				lng: coordinateData[0].geometry.coordinates[0],
-	// 				lat: coordinateData[0].geometry.coordinates[1],
-	// 			};
-	// 			const last = {
-	// 				lng: coordinateData[coordinateData.length - 1].geometry
-	// 					.coordinates[0],
-	// 				lat: coordinateData[coordinateData.length - 1].geometry
-	// 					.coordinates[1],
-	// 			};
-	// 			console.log(start, last);
-	// 			starting = start;
-	// 			// end = last;
-	// 			setcenter(start);
-	// 			setStart(start);
-	// 			setEnd(last);
-	// 			// return coordinateData;
-	// 		});
-	// }, []);
+	// create marker on google map
+	const tooltip = (marker) => {
+		console.log(marker);
+		const InfoWindowContent = (
+			<div style={{ width: "max-content", height: "max-content" }}>
+				<div>Lng : {marker.position.lng()}</div>
+				<div>Lat : {marker.position.lat()}</div>
+			</div>
+		);
+		const content = ReactDOMServer.renderToString(InfoWindowContent);
+		// eslint-disable-next-line no-undef
+		const infowindow = new google.maps.InfoWindow({
+			content: content,
+		});
+		infowindow.open(map, marker);
+	};
+	const createMarker = (markerObj) => {
+		// eslint-disable-next-line no-undef
+		const marker = new google.maps.Marker({
+			position: markerObj.position,
+			map: map,
+			icon: {
+				url: markerObj.icon,
+				// set marker width and height
+				// eslint-disable-next-line no-undef
+				scaledSize: new google.maps.Size(50, 50),
+			},
+			title: markerObj.title,
+		});
+		const normalTooltip = `<div style={{ width: "max-content", height: "max-content" }}>
+				<div>Lng : ${markerObj.position.lng}</div>
+				<div>Lng : ${markerObj.position.lat}</div>
+			</div>`;
+
+		// eslint-disable-next-line no-undef
+		const InfoWindowContent = (
+			<div style={{ width: "max-content", height: "max-content" }}>
+				<div>Lng : {marker.position.lng()}</div>
+				<div>Lat : {marker.position.lat()}</div>
+			</div>
+		);
+		const content = ReactDOMServer.renderToString(InfoWindowContent);
+		// eslint-disable-next-line no-undef
+		const infowindow = new google.maps.InfoWindow({
+			content: content,
+		});
+
+		marker.addListener("click", () => infowindow.open(map, marker));
+
+		return marker;
+	};
+	let m = [];
 	useEffect(() => {
 		console.log(coordinates, isLoaded);
-		if (coordinates != null && coordinates2 != null && isLoaded) {
-			// coordinates.forEach((item, ind) => {
-			// 	setTimeout(() => {
-			// 		const start = {
-			// 			lng: item[0],
-			// 			lat: item[1],
-			// 		};
-			// 		starting = start;
-			// 		setStart(start);
-			// 		console.log("====================================");
-			// 		console.log(starting, ind);
-			// 	}, 5000);
-			// });
-			const len = coordinates.length;
-			let i = 0;
-			setTimeout(() => {
-				const interval = setInterval(() => {
-					if (i < len) {
-						const start = {
-							lng: coordinates[i][0],
-							lat: coordinates[i][1],
+		if (isLoaded && map != null) {
+			// alert("hello");
+			var bounds = new window.google.maps.LatLngBounds();
+			markerList.map((x) => {
+				const marker = createMarker(x);
+				m.push(marker);
+				bounds.extend(marker.position);
+			});
+			map.fitBounds(bounds);
+			if (coordinates != null && coordinates2 != null && isLoaded) {
+				const len = coordinates.length;
+				let i = 0;
+				setTimeout(() => {
+					const interval = setInterval(() => {
+						if (i < len) {
+							const start = {
+								lng: coordinates[i][0],
+								lat: coordinates[i][1],
+							};
+							setStart(start);
+							m[0].setPosition(start);
+
+							if (i === len - 1) {
+								m[0].setIcon({
+									url: "https://creazilla-store.fra1.digitaloceanspaces.com/cliparts/14210/traffic-collision-clipart-md.png",
+									// set marker width and height
+									// eslint-disable-next-line no-undef
+									scaledSize: new google.maps.Size(50, 50),
+								});
+							}
+						}
+						const start1 = {
+							lng: coordinates2[i][0],
+							lat: coordinates2[i][1],
 						};
 
-						setStart(start);
-					}
-					const start1 = {
-						lng: coordinates2[i][0],
-						lat: coordinates2[i][1],
-					};
-
-					setStart1(start1);
-
-					if (i === coordinates2.length - 1) {
-						clearInterval(interval);
-					}
-					i += 1;
-				}, 50);
-			}, 5000);
-			// coordinates2.forEach((item, ind) => {
-			// 	if (ind < len) {
-			// 		setTimeout(() => {
-			// 			const start = {
-			// 				lng: coordinates[ind][0],
-			// 				lat: coordinates[ind][1],
-			// 			};
-			// 			starting = start;
-			// 			setStart(start);
-			// 			console.log("====================================");
-			// 			console.log(starting, ind);
-			// 		}, 7000);
-			// 	}
-			// 	setTimeout(() => {
-			// 		const start = {
-			// 			lng: item[0],
-			// 			lat: item[1],
-			// 		};
-			// 		// starting = start;
-			// 		setStart1(start);
-			// 		console.log("====================================");
-			// 		console.log(starting, ind);
-			// 	}, 7000);
-			// });
+						setStart1(start1);
+						m[1].setPosition(start1);
+						if (i === coordinates2.length - 1) {
+							m[1].setIcon({
+								url: "https://cdn.pixabay.com/photo/2012/04/24/13/12/motorcycle-40000_960_720.png",
+								// set marker width and height
+								// eslint-disable-next-line no-undef
+								scaledSize: new google.maps.Size(50, 50),
+							});
+							clearInterval(interval);
+						}
+						i += 1;
+					}, 50);
+				}, 5000);
+			}
 		}
-		// if (coordinates2 != null && isLoaded) {
-		// 	coordinates2.forEach((item, ind) => {
-		// 		setTimeout(() => {
-		// 			const start = {
-		// 				lng: item[0],
-		// 				lat: item[1],
-		// 			};
-		// 			// starting = start;
-		// 			setStart1(start);
-		// 			console.log("====================================");
-		// 			console.log(starting, ind);
-		// 		}, 5000);
-		// 	});
-		// }
-	}, [coordinates, coordinates2, isLoaded]);
-	// useEffect(() => {
-	// 	if (coordinates != null && isLoaded) {
-	// 		coordinates.forEach((item, ind) => {
-	// 			setTimeout(() => {
-	// 				const start = {
-	// 					lng: item.geometry.coordinates[0],
-	// 					lat: item.geometry.coordinates[1],
-	// 				};
-	// 				starting = start;
-	// 				setStart(start);
-	// 				console.log("====================================");
-	// 				console.log(starting, ind);
-	// 			}, 5000);
-	// 		});
-	// 	}
-	// }, [coordinates, isLoaded]);
+	}, [map, coordinates, coordinates2, isLoaded]);
 
 	const handleSingleCLick = (e) => {
 		console.log("clicked", e);
@@ -212,7 +211,7 @@ function App() {
 				center={center}
 				zoom={9}>
 				{/* Child components, such as markers, info windows, etc. */}
-				{coordinates != null && (
+				{/* {coordinates != null && (
 					<>
 						<Marker
 							id='marker1'
@@ -226,7 +225,6 @@ function App() {
 						/>
 
 						<Marker
-							// onClick={(e) => handleSingleCLick(e)}
 							icon={{
 								url: "http://www.mamotorcycles.com.mt/wp-content/uploads/2020/11/22MY_Ninja_650_WT1_STU__1_.png",
 								scaledSize: new window.google.maps.Size(40, 32),
@@ -234,7 +232,7 @@ function App() {
 							onLoad={(marker) => onLoads(marker, "Bike")}
 							position={start1}></Marker>
 					</>
-				)}
+				)} */}
 			</GoogleMap>
 		) : (
 			<></>
