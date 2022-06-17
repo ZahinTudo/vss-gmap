@@ -123,30 +123,57 @@ function App() {
 			// 	}, 5000);
 			// });
 			const len = coordinates.length;
-			coordinates2.forEach((item, ind) => {
-				if (ind < len) {
-					setTimeout(() => {
+			let i = 0;
+			setTimeout(() => {
+				const interval = setInterval(() => {
+					if (i < len) {
 						const start = {
-							lng: coordinates[ind][0],
-							lat: coordinates[ind][1],
+							lng: coordinates[i][0],
+							lat: coordinates[i][1],
 						};
 						starting = start;
 						setStart(start);
 						console.log("====================================");
-						console.log(starting, ind);
-					}, 7000);
-				}
-				setTimeout(() => {
-					const start = {
-						lng: item[0],
-						lat: item[1],
+						// console.log(starting, ind);
+					}
+					const start1 = {
+						lng: coordinates2[i][0],
+						lat: coordinates2[i][1],
 					};
 					// starting = start;
-					setStart1(start);
+					setStart1(start1);
 					console.log("====================================");
-					console.log(starting, ind);
-				}, 7000);
-			});
+					// console.log(starting, ind);
+					if (i == coordinates2.length - 1) {
+						clearInterval(interval);
+					}
+					i += 1;
+				}, 50);
+			}, 5000);
+			// coordinates2.forEach((item, ind) => {
+			// 	if (ind < len) {
+			// 		setTimeout(() => {
+			// 			const start = {
+			// 				lng: coordinates[ind][0],
+			// 				lat: coordinates[ind][1],
+			// 			};
+			// 			starting = start;
+			// 			setStart(start);
+			// 			console.log("====================================");
+			// 			console.log(starting, ind);
+			// 		}, 7000);
+			// 	}
+			// 	setTimeout(() => {
+			// 		const start = {
+			// 			lng: item[0],
+			// 			lat: item[1],
+			// 		};
+			// 		// starting = start;
+			// 		setStart1(start);
+			// 		console.log("====================================");
+			// 		console.log(starting, ind);
+			// 	}, 7000);
+			// });
 		}
 		// if (coordinates2 != null && isLoaded) {
 		// 	coordinates2.forEach((item, ind) => {
