@@ -16,17 +16,6 @@ const containerStyle = {
 	height: "100vh",
 };
 
-const start_point = {
-	lat: 23.8540299172,
-	lng: 90.415498338,
-};
-const end_point = {
-	lat: 23.622641,
-	lng: 90.499794,
-};
-
-let starting = null;
-let end = null;
 function App() {
 	const [coordinates, setCoordinates] = useState(null);
 	const [coordinates2, setCoordinates2] = useState(null);
@@ -34,9 +23,9 @@ function App() {
 	const [start1, setStart1] = useState(null);
 	const [center, setcenter] = useState(null);
 	const [map, setMap] = React.useState(null);
-	const [marker1, setMarker1] = React.useState(null);
-	const [end, setEnd] = useState(null);
-	const [BikerShow, setBikerShow] = useState(false);
+	// const [marker1, setMarker1] = React.useState(null);
+	// const [end, setEnd] = useState(null);
+
 	// var directionsService = new google.maps.DirectionsService();
 	const { isLoaded } = useJsApiLoader({
 		id: "google-map-script",
@@ -53,9 +42,12 @@ function App() {
 	const onUnmount = React.useCallback(function callback(map) {
 		setMap(null);
 	}, []);
-	const onLoads = (marker) => {
+	const onLoads = (marker, content) => {
 		console.log("marker: ", marker);
-		setMarker1(marker);
+		const infowindow = new window.google.maps.InfoWindow({
+			content: `<h1>${content}</h1>`,
+		});
+		marker.addListener("click", () => infowindow.open(map, marker));
 	};
 	useEffect(() => {
 		fetch("/sirTrack2.geojson")
@@ -75,19 +67,12 @@ function App() {
 					lng: coordinateData2[0][0],
 					lat: coordinateData2[0][1],
 				};
-				// const last = {
-				// 	lng: coordinateData[coordinateData.length - 1][0],
-				// 	lat: coordinateData[coordinateData.length - 1][1],
-				// };
 
 				console.log(start);
-				// starting = start;
-				// end = last;
+
 				setcenter(start);
 				setStart(start);
 				setStart1(start1);
-				// setEnd(last);
-				// return coordinateData;
 			});
 	}, []);
 	// useEffect(() => {
@@ -140,19 +125,16 @@ function App() {
 							lng: coordinates[i][0],
 							lat: coordinates[i][1],
 						};
-						starting = start;
+
 						setStart(start);
-						// console.log("====================================");
-						// console.log(starting, ind);
 					}
 					const start1 = {
 						lng: coordinates2[i][0],
 						lat: coordinates2[i][1],
 					};
-					// starting = start;
+
 					setStart1(start1);
-					// console.log("====================================");
-					// console.log(starting, ind);
+
 					if (i === coordinates2.length - 1) {
 						clearInterval(interval);
 					}
@@ -215,19 +197,9 @@ function App() {
 	// 		});
 	// 	}
 	// }, [coordinates, isLoaded]);
-	const divStyle = {
-		background: `white`,
-		border: `1px solid #ccc`,
-		padding: 15,
-	};
+
 	const handleSingleCLick = (e) => {
 		console.log("clicked", e);
-		const infowindow = new window.google.maps.InfoWindow({
-			content: "<h1>Biker 1</h1>",
-		});
-		infowindow.open(map, marker1);
-		// marker.addListener("click", () =>);
-		setBikerShow(true);
 	};
 	return (
 		// <Home />
@@ -243,7 +215,8 @@ function App() {
 				{coordinates != null && (
 					<>
 						<Marker
-							onLoad={onLoads}
+							id='marker1'
+							onLoad={(marker) => onLoads(marker, "Truck")}
 							position={start}
 							key='marker_1'
 							icon={{
@@ -253,24 +226,13 @@ function App() {
 						/>
 
 						<Marker
-							onClick={(e) => handleSingleCLick(e)}
+							// onClick={(e) => handleSingleCLick(e)}
 							icon={{
-								url: "https://www.freepnglogos.com/uploads/bike-png/black-yamaha-yzf-sport-motorcycle-bike-png-image-pngpix-32.png",
+								url: "http://www.mamotorcycles.com.mt/wp-content/uploads/2020/11/22MY_Ninja_650_WT1_STU__1_.png",
 								scaledSize: new window.google.maps.Size(40, 32),
 							}}
-							onLoad={onLoads}
+							onLoad={(marker) => onLoads(marker, "Bike")}
 							position={start1}></Marker>
-						{/* <div className={BikerShow ? ` d-block ` : `d-none`}>
-						    <InfoWindow onLoad={onLoad} position={start1}> 
-							<div
-								style={{
-									width: "max-content",
-									height: "max-content",
-								}}>
-								<h1>Biker 1</h1>
-							</div>
-							 </InfoWindow> 
-						</div> */}
 					</>
 				)}
 			</GoogleMap>
