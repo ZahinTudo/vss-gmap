@@ -11,6 +11,7 @@ import {
 	InfoWindow,
 	useJsApiLoader,
 } from "@react-google-maps/api";
+import VehicleDetailsModal from "./Components/VehicleDetailsModal/VehicleDetailsModal";
 
 const containerStyle = {
 	width: "100vw",
@@ -24,6 +25,9 @@ function App() {
 	const [start, setStart] = useState(null);
 	const [start1, setStart1] = useState(null);
 	const [center, setcenter] = useState(null);
+	const [details, setDetails] = useState(null);
+	const [VehicleDetailsModalshow, setVehicleDetailsModal] =
+		React.useState(false);
 	const [map, setMap] = React.useState(/** @type google.maps.Map */ (null));
 	// const [marker1, setMarker1] = React.useState(null);
 	// const [end, setEnd] = useState(null);
@@ -71,14 +75,22 @@ function App() {
 					{
 						position: start,
 						icon: "https://purepng.com/public/uploads/large/yellow-truck-n1f.png",
-						info: "<div><h2>Info 4</h2><p>marker 1<br/> Im truck.</p></div>",
+						info: "<div><h2>Marker 1</h2><p>Truck no : 1<br/> Driver : Saman</p></div>",
 						title: "Marker 1",
+						driver: "Saman",
+						License: "Sa1545465",
+						Start: "Mysyru",
+						end: "Tudo tech",
 					},
 					{
 						position: start1,
 						icon: "http://www.mamotorcycles.com.mt/wp-content/uploads/2020/11/22MY_Ninja_650_WT1_STU__1_.png",
-						info: "<div><h2>Info 4</h2><p>marker 1<br/> Im truck.</p></div>",
-						title: "Marker 1",
+						info: "<div><h2>Marker 2</h2><p>Truck no : 2<br/> Driver : Zahin</p></div>",
+						title: "Marker 2",
+						driver: "Zahin",
+						License: "Za1545465",
+						Start: "Tudo tech",
+						end: "My home",
 					},
 				];
 				console.log(start);
@@ -89,22 +101,15 @@ function App() {
 				setStart1(start1);
 			});
 	}, []);
-	// create marker on google map
-	const tooltip = (marker) => {
-		console.log(marker);
-		const InfoWindowContent = (
-			<div style={{ width: "max-content", height: "max-content" }}>
-				<div>Lng : {marker.position.lng()}</div>
-				<div>Lat : {marker.position.lat()}</div>
-			</div>
-		);
-		const content = ReactDOMServer.renderToString(InfoWindowContent);
-		// eslint-disable-next-line no-undef
-		const infowindow = new google.maps.InfoWindow({
-			content: content,
-		});
-		infowindow.open(map, marker);
+	const handleDetailsModal = (details, marker) => {
+		const newDetails = details;
+		newDetails.lng = marker.position.lng();
+		newDetails.lat = marker.position.lat();
+		setDetails(newDetails);
+		setVehicleDetailsModal(true);
 	};
+	// create marker on google map
+
 	const createMarker = (markerObj) => {
 		// eslint-disable-next-line no-undef
 		const marker = new google.maps.Marker({
@@ -118,16 +123,16 @@ function App() {
 			},
 			title: markerObj.title,
 		});
-		const normalTooltip = `<div style={{ width: "max-content", height: "max-content" }}>
-				<div>Lng : ${markerObj.position.lng}</div>
-				<div>Lng : ${markerObj.position.lat}</div>
-			</div>`;
 
 		// eslint-disable-next-line no-undef
 		const InfoWindowContent = (
 			<div style={{ width: "max-content", height: "max-content" }}>
-				<div>Lng : {marker.position.lng()}</div>
-				<div>Lat : {marker.position.lat()}</div>
+				<div id='driverName'>
+					<span>Driver : {markerObj.driver}</span>
+				</div>
+				<div id='licenceNo'>
+					<span>License No. : {markerObj.License}</span>
+				</div>
 			</div>
 		);
 		const content = ReactDOMServer.renderToString(InfoWindowContent);
@@ -137,6 +142,9 @@ function App() {
 		});
 
 		marker.addListener("click", () => infowindow.open(map, marker));
+		marker.addListener("dblclick", () => {
+			handleDetailsModal(markerObj, marker);
+		});
 
 		return marker;
 	};
@@ -204,14 +212,20 @@ function App() {
 		// <Home />
 
 		isLoaded ? (
-			<GoogleMap
-				onLoad={onLoad}
-				onUnmount={onUnmount}
-				mapContainerStyle={containerStyle}
-				center={center}
-				zoom={9}>
-				{/* Child components, such as markers, info windows, etc. */}
-				{/* {coordinates != null && (
+			<>
+				<VehicleDetailsModal
+					details={details}
+					show={VehicleDetailsModalshow}
+					onHide={() => setVehicleDetailsModal(false)}
+				/>
+				<GoogleMap
+					onLoad={onLoad}
+					onUnmount={onUnmount}
+					mapContainerStyle={containerStyle}
+					center={center}
+					zoom={9}>
+					{/* Child components, such as markers, info windows, etc. */}
+					{/* {coordinates != null && (
 					<>
 						<Marker
 							id='marker1'
@@ -233,7 +247,8 @@ function App() {
 							position={start1}></Marker>
 					</>
 				)} */}
-			</GoogleMap>
+				</GoogleMap>
+			</>
 		) : (
 			<></>
 		)
